@@ -1,0 +1,5 @@
+name = Ting! local bibliography
+description = Handles local bibliography objects.
+package = Ding!
+core = 6.x
+dependencies[] = ting

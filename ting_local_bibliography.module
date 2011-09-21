@@ -1,0 +1,15 @@
+<?php
+
+/**
+ * Implementation of hook_ting_object_is().
+ */
+function ting_local_bibliography_ting_object_is($object, $class) {
+  // Local bibliography objects are never of limited availability.
+  if ($class == 'limited_availability') {
+    foreach($object->record['ac:source'] as $source) {
+      if (in_array('Lokalbibliografi', $source)) {
+        return FALSE;
+      }
+    }
+  }
+}
