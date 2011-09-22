@@ -4,12 +4,63 @@
  * Implementation of hook_ting_object_is().
  */
 function ting_local_bibliography_ting_object_is($object, $class) {
-  // Local bibliography objects are never of limited availability.
-  if ($class == 'limited_availability') {
+  // Objects are considered local bibliography if they have the
+  // 'Lokalbibliografi' source.
+  if ($class == 'local_bibliography') {
     foreach($object->record['ac:source'] as $source) {
       if (in_array('Lokalbibliografi', $source)) {
-        return FALSE;
+        return TRUE;
       }
     }
   }
+
+  // Local bibliography objects are never of limited availability,
+  // cartable or reservable.
+  if (in_array($class, array('limited_availability', 'cartable', 'reservable')) &&
+     ting_object_is($object, 'local_bibliography')) {
+    return FALSE;
+  }
+
+}
+
+/**
+ * Implementation of hook_ting_object_buttons()
+ */
+function ting_local_bibliography_ting_object_buttons($object) {
+  if (ting_object_is($object, 'local_bibliography')) {
+    //drupal_add_js(drupal_get_path('module', 'ding_cart') . '/ding_cart.buttons.js');
+    return array(
+      array(
+        'data' => l(t('Order material'), 'ting/local_bibliography/order/'  . $object->id),
+        'class' => 'local-bibliography'
+      )
+    );
+  }
+}
+
+/**
+ * Implementation of hook_preprocess_ting_object().
+ */
+function ting_local_bibliography_preprocess_ting_object(&$vars) {
+  // Add object status to main content
+  $vars['additional_main_content'] = array(
+      '#type' => 'markup',
+      '#weight' => 0,
+      '#value' => theme('ting_local_bibliography_object_status', $object),
+  );
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function ting_local_bibliography_theme() {
+  return array(
+    'ting_local_bibliography_object_status' => array(
+      'arguments' => array('object' => NULL),
+    ),
+  );
+}
+
+function theme_ting_local_bibliography_object_status($object) {
+  return '<div class="ting-status local-bibliography">' . t('Local bibliography') . '</div>';
 }
