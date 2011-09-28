@@ -3,3 +3,4 @@ description = Handles local bibliography objects.
 package = Ding!
 core = 6.x
 dependencies[] = ting
+dependencies[] = ding_provider

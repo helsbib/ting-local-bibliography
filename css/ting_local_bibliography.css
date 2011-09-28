@@ -1,0 +1,16 @@
+/**
+ *  General styling for forms containing within Ting dialog boxes.
+ *  
+ *  This should probably go within the Dynamo or Ting button modules at some point.
+ */
+.ui-dialog-content input { width: 100%; }
+.ui-dialog-content input.form-submit { width: auto; }
+.ui-dialog-content .form-description { font-size: 80%; }
+/* Position clientside form validation errors in the top right corner
+   of the failing element. */
+.ui-dialog-content label.error { display: block; position: absolute; top: 0; right: 0; font-weight: normal; font-size: 80%; text-align: right; }
+
+/**
+ * Local bibliography order form
+ */
+#ting-local-bibliography-object-order-form legend { display: none; }
