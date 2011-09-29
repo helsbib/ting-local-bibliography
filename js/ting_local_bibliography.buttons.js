@@ -2,7 +2,7 @@
  * Javascript helpers for Ding reservation interaction buttons.
  */
 Drupal.behaviors.tingLocalBibliographyButtons = function () {
-  Drupal.tingButtons.dialogButton('.local-bibliography-order a', {});
+  Drupal.tingButtons.dialogButton('.local-bibliography-order a, a.local-bibliography-order', {});
   
   $('.local-bibliography-order a').ajaxSuccess( function(event, XMLHttpRequest, ajaxOptions) {
     // Add clientside validation when the form has been loaded  

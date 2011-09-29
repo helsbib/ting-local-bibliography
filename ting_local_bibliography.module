@@ -19,8 +19,8 @@ Phone: !phone');
 function ting_local_bibliography_menu() {
   $items = array();
 
-  $items['ting/local_bibliography/order/%ting_id'] = array(
-    'title' => 'Order object',
+  $items['ting/local_bibliography/order/%'] = array(
+    'title' => 'Order item',
     'page callback' => 'ting_local_bibliography_page_order_item',
     'page arguments' => array(3),
   	'access arguments' => array('access content'),
@@ -33,232 +33,11 @@ function ting_local_bibliography_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('ting_local_bibliography_admin_settings_form'),
     'access arguments' => array('administer site configuration'),
+    'file' => 'ting_local_bibliography.admin.inc',
     'type' => MENU_LOCAL_TASK,
   );
 
   return $items;
-}
-
-/**
- * Form to order a local bibliography object
- */
-function ting_local_bibliography_object_order_form(&$form_state, $object) {
-  global $user;
-
-  $form = array();
-
-  $form['ting_id'] = array(
-    '#type' => 'hidden',
-    '#value' => $object->id,
-  );
-
-  $library_options = array();
-  $default_library = NULL;
-  /*
-  // Fetch all library nodes defined as nodes
-  $result = db_query('SELECT nid, title FROM {node} WHERE type = "library"');
-  while ($library = db_fetch_array($result)) {
-    $library_options[$library['nid']] = $library['title'];
-  }
-  */
-  foreach (ding_provider_invoke('branch', 'list') as $branch_id => $branch_name) {
-    // We do not care about the library ids as the information is passed along
-    // in a mail anyhow.
-    $library_options[$branch_name] = $branch_name;
-
-    if (isset($account->preferred_branch) &&
-        $account->preferred_branch == $branch_id) {
-          $default_library = $branch_id;
-    }
-  }
-
-  $form['library'] = array(
-    '#type' => 'select',
-    '#options' => array_merge(array(t('Choose a library branch')) , $library_options),
-    '#title' => t('Library'),
-    '#default_value' => $default_library,
-    '#required' => TRUE,
-  );
-
-  $form['user'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Personal information'),
-  );
-
-  $form['user']['name'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Name'),
-    '#required' => TRUE,
-    '#default_value' => (isset($user->display_name) ? $user->display_name : ''),
-  );
-
-  $form['user']['address'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Address'),
-    '#required' => TRUE,
-    '#default_value' => '',
-  );
-
-  $form['user']['city'] = array(
-    '#type' => 'textfield',
-    '#title' => t('City'),
-    '#required' => TRUE,
-    '#default_value' => '',
-  );
-
-  $form['user']['date_of_birth'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Date of birth'),
-    '#description' => t('Format: dd/mm/yyyy'),
-    '#required' => TRUE,
-    '#default_value' => '',
-  );
-
-  $form['user']['email'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Email'),
-    '#required' => TRUE,
-    '#default_value' => (isset($user->mail) ? $user->mail : ''),
-  );
-
-  $form['user']['phone'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Telephone number'),
-    '#required' => TRUE,
-  );
-
-  $form['buttons']['order'] = array(
-    '#type' => 'submit',
-    '#op' => 'order',
-    '#value' => t('Order item'),
-  );
-
-  return $form;
-}
-
-/**
- * Validate handler for order form.
- */
-
-function ting_local_bibliography_object_order_form_validate($form, &$form_state) {
-  $object = ting_get_object_by_id($form_state['values']['ting_id']);
-  if (!$object || !ting_object_is($object, 'local_bibliography')) {
-    form_set_error('ting_id', t('You have tried to order an object which is not a local bibliography.'));
-  }
-
-  if (!$form_state['values']['library']) {
-    form_set_error('library', t('Please select a library.'));
-  }
-
-  if (!filter_var($form_state['values']['email'], FILTER_VALIDATE_EMAIL)) {
-    form_set_error('email', t('Please enter a valid email address.'));
-  }
-
-  $date = explode('/', $form_state['values']['date_of_birth'], 3);
-  if (!checkdate($date[1], $date[0], $date[2])) {
-    form_set_error('date_of_birth', t('Please enter a valid date of birth.'));
-  }
-
-  if (!preg_match('/^(\+45)?(\s?\d{2}){4}$/', $form_state['values']['phone'])) {
-    form_set_error('phone', t('Please enter a valid telephone number.'));
-  }
-}
-
-/**
- * Submit handler for order form.
- */
-function ting_local_bibliography_object_order_form_submit($form, &$form_state) {
-  // Fetch the object which is being ordered
-  $object = ting_get_object_by_id($form_state['values']['ting_id']);
-
-  // Determine library from and to emails
-  $email_from = variable_get('site_mail', ini_get('sendmail_from'));
-  $email_to = variable_get('ting_local_bibliography_recipient_email', variable_get('site_mail', ini_get('sendmail_from')));
-
-  // Email will also be sent to the requesting user
-  $email_to . ', ' . $form_state['values']['email'];
-
-  // Compose email
-  $message['subject'] = t('!site: New local bibliography order', array('!site' => variable_get('site_name', 'Ding!')));
-  $message['body'] = t(variable_get('ting_local_bibliography_mailtext', TING_LOCAL_BIBLIOGRAPHY_DEFAULT_MAILTEXT),
-        array(
-          '!name' => $form_state['values']['name'],
-          '!address' => $form_state['values']['address'],
-          '!city' => $form_state['values']['city'],
-          '!date_of_birth' => $form_state['values']['date_of_birth'],
-        	'!email' => $form_state['values']['email'],
-          '!phone' => $form_state['values']['phone'],
-          '!library' => $form_state['values']['library'],
-          '!material_title' => $object->title,
-          '!material_url' => url('ting/object/' . $object->id, array('absolute' => true)),
-        )
-      );
-
-
-  // Send email
-  drupal_mail('ting_local_bibliography',
-              'local_bibliography_order',
-              $email_to,
-              language_default(),
-              $message,
-              variable_get('site_mail', ini_get('sendmail_from')));
-
-  // Set a message to notify the user that the order is succesful.
-  drupal_set_message(t('You have ordered %title. The library has been notified and a reciept has been emailed to you.', array('%title' => $object->title)));
-
-  $result_uri = 'ting/object/' . $object->id;
-  // If we have an referrer and it is not the order page then redirect to it instead of the object page
-  if (referer_uri() && !strpos(referer_uri(), 'ting/local_bibliography/order')) {
-    $result_uri = referer_uri();
-  }
-  drupal_goto($result_uri);
-}
-
-/**
- * Implementation of hook_email().
- */
-function ting_local_bibliography_mail($key, &$message, $params) {
-  $message['subject'] = $params['subject'];
-  $message['body'][] = $params['body'];
-}
-
-/**
- * Administration form.
- */
-function ting_local_bibliography_admin_settings_form() {
-  $form = array();
-
-  $form['ting_local_bibliography_recipient_email'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Library staff email'),
-    '#description' => t('This is the email address to which local bibliography order notifications will be sent. A copy of the notification will also be sent to the user.'),
-    '#required' => TRUE,
-    '#default_value' => variable_get('ting_local_bibliography_recipient_email',  variable_get('site_mail', ini_get('sendmail_from'))),
-  );
-
-  $form['ting_local_bibliography_mailtext'] = array(
-    '#type' => 'textarea',
-    '#title' => t('Mail text for sending notifications of local bibliography orders. This will be sent to library staff and the user.'),
-    '#description' => t(
-      'You can use the following variables to be replaced:
-      <ul>
-      <li>!name = the name of the user placing the order</li>
-      <li>!address = the address of the user placing the order</li>
-      <li>!city = the address of the user placing the order</li>
-      <li>!birthday = the address of the user placing the order</li>
-      <li>!email = the email address of the user placing the order</li>
-      <li>!phone = the phone number of the user placing the order</li>
-      <li>!material_title = the title of the item which the user wants to order</li>
-      <li>!material_url = the url for the item which the user wants to order</li>
-      <li>!library = the name of the library the user would like the item sent to</li>
-      </ul>'
-    ),
-    '#default_value' => variable_get('ting_local_bibliography_mailtext', t(TING_LOCAL_BIBLIOGRAPHY_DEFAULT_MAILTEXT)),
-    '#cols' => 80,
-    '#rows' => 15
-  );
-
-  return system_settings_form($form);
 }
 
 /**
@@ -312,13 +91,41 @@ function ting_local_bibliography_ting_object_buttons($object) {
  * Implementation of hook_preprocess_ting_object().
  */
 function ting_local_bibliography_preprocess_ting_object(&$vars) {
+  $object = $vars['object'];
+
   // Add object status to main content
-  if (ting_object_is($vars['object'], 'local_bibliography')) {
+  if (ting_object_is($object, 'local_bibliography')) {
     $vars['additional_main_content'] = array(
         '#type' => 'markup',
         '#weight' => 0,
         '#value' => theme('ting_local_bibliography_object_status', $object),
     );
+
+    // If an object is a part of a collection and the collection exists as
+    // a relation then make the relation a link
+    if (!empty($object->record['dcterms:isPartOf'][''])) {
+      foreach ($object->record['dcterms:isPartOf'][''] as &$isPartOf) {
+        $host_object = FALSE;
+
+        // Determine if there is a related object which this object is a part of
+        if (isset($object->relations)) {
+          foreach ($object->relations as $related_object) {
+            if ($related_object->relationType == 'isPartOfManifestation' &&
+                ($related_object->ownerId == $object->ownerId ||
+                 $related_object->ownerId == variable_get('ting_agency', NULL))) {
+              $host_object = $object;
+            }
+          }
+        }
+
+        // If object is a local bibliography object with a host object without a matching
+        // relation then support ordering the object.
+        if (!$host_object) {
+          $isPartOf .= ' ' . l('Order material', 'ting/local_bibliography/order/'  . $isPartOf,
+                               array('attributes' => array('class' => 'local-bibliography-order')));
+        }
+      }
+    }
   }
 }
 
@@ -351,4 +158,12 @@ function ting_local_bibliography_theme() {
 
 function theme_ting_local_bibliography_object_status($object) {
   return '<div class="ting-status local-bibliography">' . t('Local bibliography') . '</div>';
+}
+
+/**
+ * Implementation of hook_email().
+ */
+function ting_local_bibliography_mail($key, &$message, $params) {
+  $message['subject'] = $params['subject'];
+  $message['body'][] = $params['body'];
 }
