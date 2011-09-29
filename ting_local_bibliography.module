@@ -326,8 +326,10 @@ function ting_local_bibliography_preprocess_ting_object(&$vars) {
  * Implementation of hook_preprocess_ting_object().
  */
 function ting_local_bibliography_preprocess_ting_list_item(&$vars) {
+  $object = $vars['object'];
+
   // Add object status to main content
-  if (ting_object_is($vars['object'], 'local_bibliography')) {
+  if (ting_object_is($object, 'local_bibliography')) {
     $vars['additional_content'] = array(
         '#type' => 'markup',
         '#weight' => 0,
