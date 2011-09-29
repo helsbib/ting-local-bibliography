@@ -122,7 +122,8 @@ function ting_local_bibliography_preprocess_ting_object(&$vars) {
         // relation then support ordering the object.
         if (!$host_object) {
           $isPartOf .= ' ' . l('Order material', 'ting/local_bibliography/order/'  . $isPartOf,
-                               array('attributes' => array('class' => 'local-bibliography-order')));
+                               array('attributes' => array('class' => 'local-bibliography-order',
+                                                           'title' => t('Order %title', array('%title' => $isPartOf)))));
         }
       }
     }
