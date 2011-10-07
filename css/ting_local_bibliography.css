@@ -14,3 +14,8 @@
  * Local bibliography order form
  */
 #ting-local-bibliography-object-order-form legend { display: none; }
+
+/**
+ * Local bibliography order links
+ */
+.ting-item .object-information a.local-bibliography-order { white-space: nowrap; }
