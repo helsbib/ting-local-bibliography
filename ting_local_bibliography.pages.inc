@@ -55,29 +55,21 @@ function ting_local_bibliography_object_order_form(&$form_state, $item) {
 
   $library_options = array();
   $default_library = NULL;
-  /*
+
   // Fetch all library nodes defined as nodes
+  // Retrieving branches from the library system yields a lot of irrelevant
+  // locations as there is no way to retrieve reservation branches only.
+  // This means that we cannot select the users' preferred branch as default
+  // as the names may differ.
   $result = db_query('SELECT nid, title FROM {node} WHERE type = "library"');
   while ($library = db_fetch_array($result)) {
     $library_options[$library['nid']] = $library['title'];
-  }
-  */
-  foreach (ding_provider_invoke('branch', 'list') as $branch_id => $branch_name) {
-    // We do not care about the library ids as the information is passed along
-    // in a mail anyhow.
-    $library_options[$branch_name] = $branch_name;
-
-    if (isset($account->preferred_branch) &&
-        $account->preferred_branch == $branch_id) {
-          $default_library = $branch_id;
-    }
   }
 
   $form['library'] = array(
     '#type' => 'select',
     '#options' => array_merge(array(t('Choose a library branch')) , $library_options),
     '#title' => t('Library'),
-    '#default_value' => $default_library,
     '#description' => t('The library where you want to pick up the material'),
     '#required' => TRUE,
   );
