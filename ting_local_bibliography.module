@@ -67,7 +67,8 @@ function ting_local_bibliography_ting_object_is($object, $class) {
  * Implementation of hook_ting_object_buttons()
  */
 function ting_local_bibliography_ting_object_buttons($object) {
-  if (ting_object_is($object, 'local_bibliography')) {
+  if (ting_object_is($object, 'local_bibliography') &&
+      empty($object->record['dcterms:isPartOf'][''])) {
     // Add required assets
     ting_local_bibliography_add_css_js();
 
@@ -115,6 +116,10 @@ function ting_local_bibliography_preprocess_ting_object(&$vars) {
         // If object is a local bibliography object with a host object without a matching
         // relation then support ordering the object.
         if (!$host_object) {
+          // Add required assets
+          ting_local_bibliography_add_css_js();
+
+          // Add an order link
           $isPartOf .= ' ' . l('Order material', 'ting/local_bibliography/order/'  . $isPartOf,
                                array('attributes' => array('class' => 'local-bibliography-order',
                                                            'title' => t('Order %title', array('%title' => $isPartOf)))));
