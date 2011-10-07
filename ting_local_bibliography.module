@@ -68,14 +68,8 @@ function ting_local_bibliography_ting_object_is($object, $class) {
  */
 function ting_local_bibliography_ting_object_buttons($object) {
   if (ting_object_is($object, 'local_bibliography')) {
-    // Add jquery validate library and localized messages
-    drupal_add_js(drupal_get_path('module', 'ting_local_bibliography') . '/js/jquery-validate/jquery.validate.min.js');
-    drupal_add_js(drupal_get_path('module', 'ting_local_bibliography') . '/js/jquery-validate/additional-methods.min.js');
-    drupal_add_js(drupal_get_path('module', 'ting_local_bibliography') . '/js/jquery.validate.messages.drupal.js');
-
-    // Add module javascript and css
-    drupal_add_js(drupal_get_path('module', 'ting_local_bibliography') . '/js/ting_local_bibliography.buttons.js');
-    drupal_add_css(drupal_get_path('module', 'ting_local_bibliography') . '/css/ting_local_bibliography.css');
+    // Add required assets
+    ting_local_bibliography_add_css_js();
 
     // Return the buttons
     return array(
@@ -159,6 +153,20 @@ function ting_local_bibliography_theme() {
 
 function theme_ting_local_bibliography_object_status($object) {
   return '<div class="ting-status local-bibliography">' . t('Local bibliography') . '</div>';
+}
+
+/**
+ * Add CSS and Javascript used by the module
+ */
+function ting_local_bibliography_add_css_js() {
+  // Add jquery validate library and localized messages
+  drupal_add_js(drupal_get_path('module', 'ting_local_bibliography') . '/js/jquery-validate/jquery.validate.min.js');
+  drupal_add_js(drupal_get_path('module', 'ting_local_bibliography') . '/js/jquery-validate/additional-methods.min.js');
+  drupal_add_js(drupal_get_path('module', 'ting_local_bibliography') . '/js/jquery.validate.messages.drupal.js');
+
+  // Add module javascript and css
+  drupal_add_js(drupal_get_path('module', 'ting_local_bibliography') . '/js/ting_local_bibliography.buttons.js');
+  drupal_add_css(drupal_get_path('module', 'ting_local_bibliography') . '/css/ting_local_bibliography.css');
 }
 
 /**
