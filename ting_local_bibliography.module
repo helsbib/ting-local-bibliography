@@ -67,18 +67,53 @@ function ting_local_bibliography_ting_object_is($object, $class) {
  * Implementation of hook_ting_object_buttons()
  */
 function ting_local_bibliography_ting_object_buttons($object) {
-  if (ting_object_is($object, 'local_bibliography') &&
-      empty($object->record['dcterms:isPartOf'][''])) {
-    // Add required assets
-    ting_local_bibliography_add_css_js();
+  if (ting_object_is($object, 'local_bibliography')) {
+    $order_id = FALSE;
 
-    // Return the buttons
-    return array(
-      array(
-        'data' => l(t('Order material'), 'ting/local_bibliography/order/'  . $object->id),
-        'class' => 'local-bibliography-order'
-      )
-    );
+    if (empty($object->record['dcterms:isPartOf'][''])) {
+      // Local bibliography objects without host objects can be ordered
+      $order_id = $object->localId;
+    } else {
+       // Hosts of local bibliography objects which are not available
+       // as separate objects can be ordered.
+      foreach ($object->record['dcterms:isPartOf'][''] as $is_part_of) {
+        $host_object = FALSE;
+
+        // Determine if there is a related object which this object is a part of
+        if (isset($object->relations)) {
+          foreach ($object->relations as $related_object) {
+            if ($related_object->relationType == 'isPartOfManifestation' &&
+                ($related_object->ownerId == $object->ownerId ||
+                 $related_object->ownerId == variable_get('ting_agency', NULL))) {
+              $host_object = $object;
+            }
+          }
+        }
+
+        // If object is a local bibliography object with a host object without
+        // a matching relation then support ordering the object.
+        // If the host object has a matching relation then the host object should
+        // be reachable through linked in the material information.
+        // See helbib_ting_object_update().
+        if (!$host_object) {
+          $order_id = $is_part_of;
+          break;
+        }
+      }
+    }
+
+    if ($order_id) {
+      // Add required assets
+      ting_local_bibliography_add_css_js();
+
+      // Return the button
+      return array(
+        array(
+          'data' => l(t('Order material'), 'ting/local_bibliography/order/'  . $order_id),
+          'class' => 'local-bibliography-order'
+        )
+      );
+    }
   }
 }
 
@@ -95,37 +130,6 @@ function ting_local_bibliography_preprocess_ting_object(&$vars) {
         '#weight' => 0,
         '#value' => theme('ting_local_bibliography_object_status', $object),
     );
-
-    // If an object is a part of a collection and the collection exists as
-    // a relation then make the relation a link
-    if (!empty($object->record['dcterms:isPartOf'][''])) {
-      foreach ($object->record['dcterms:isPartOf'][''] as &$isPartOf) {
-        $host_object = FALSE;
-
-        // Determine if there is a related object which this object is a part of
-        if (isset($object->relations)) {
-          foreach ($object->relations as $related_object) {
-            if ($related_object->relationType == 'isPartOfManifestation' &&
-                ($related_object->ownerId == $object->ownerId ||
-                 $related_object->ownerId == variable_get('ting_agency', NULL))) {
-              $host_object = $object;
-            }
-          }
-        }
-
-        // If object is a local bibliography object with a host object without a matching
-        // relation then support ordering the object.
-        if (!$host_object) {
-          // Add required assets
-          ting_local_bibliography_add_css_js();
-
-          // Add an order link
-          $isPartOf .= ' ' . l('Order material', 'ting/local_bibliography/order/'  . $isPartOf,
-                               array('attributes' => array('class' => 'local-bibliography-order',
-                                                           'title' => t('Order %title', array('%title' => $isPartOf)))));
-        }
-      }
-    }
   }
 }
 
