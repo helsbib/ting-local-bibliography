@@ -12,7 +12,7 @@ Identify them as local bibliography objects in the user interface through a labe
 ### Ordering
 Acquiring these objects is different from other materials. A new *Order material* button replaces the standard reserve and cart buttons. Clicking this button allows any user (even people who are not logged in) to fill out a form and thereby request the object by email.
 
-![Ting local bibliography order form](https://github.com/downloads/helsbib/ting-local-bibliography/ting_local_bibliography_order.png =600x378)
+![Ting local bibliography order form](https://github.com/downloads/helsbib/ting-local-bibliography/ting_local_bibliography_order.png)
 
 The recipient and wording of this email can be configured in the administration interface uder `/admin/settings/ting/local_bibliography`
 
