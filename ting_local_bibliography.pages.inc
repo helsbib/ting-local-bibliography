@@ -63,7 +63,7 @@ function ting_local_bibliography_object_order_form(&$form_state, $item) {
   // as the names may differ.
   $result = db_query('SELECT nid, title FROM {node} WHERE type = "library"');
   while ($library = db_fetch_array($result)) {
-    $library_options[$library['nid']] = $library['title'];
+    $library_options[$library['title']] = $library['title'];
   }
 
   $form['library'] = array(
