@@ -72,7 +72,7 @@ function ting_local_bibliography_ting_object_buttons($object) {
 
     if (empty($object->record['dcterms:isPartOf'][''])) {
       // Local bibliography objects without host objects can be ordered
-      $order_id = $object->localId;
+      $order_id = $object->id;
     } else {
        // Hosts of local bibliography objects which are not available
        // as separate objects can be ordered.
